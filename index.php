@@ -1,5 +1,8 @@
 <?php
 
+session_start();
+
+
 //$start = microtime(true); // Test de vitesse
 
 require 'validation.php';
@@ -8,19 +11,21 @@ define('MAX_TRIALS', 8);
 define('PAGE_TITLE', 'Le pendu');
 define('REPLACEMENT_CHAR', '*');
 
-$words = file('datas/words.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES); // FILE_USE_INCLUDE_PATH pas obligé si fichier est dans root
-$wordsCount = count($words);
+
 $gameState = 'start';
 $serializedLetters = '';
 $data = [];
 
+
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $words = file('datas/words.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES); // FILE_USE_INCLUDE_PATH pas obligé si fichier est dans root
+    $wordsCount = count($words);
     $wordIndex = rand(0, $wordsCount - 1);
-    $word = $words[$wordIndex];
-    $lettersCount = strlen($word);
+    $_SESSION['word'] = strtolower($words[$wordIndex]);
+    $lettersCount = strlen($_SESSION['word']);
     $trials = 0;
     $triedLetters = [];
-    $letters = [
+    $_SESSION['letters'] = [
         'a' => true,
         'b' => true,
         'c' => true,
@@ -49,28 +54,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         'z' => true,
     ];
     $replacementString = str_pad('', $lettersCount, REPLACEMENT_CHAR);
-    setcookie('wordIndex', $wordIndex);
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Retrieving datas from the request (To validate)
-    $wordIndex = $_COOKIE['wordIndex'];
-    $letters = json_decode($_COOKIE['letters'], true);
-    $word = strtolower($words[$wordIndex]);
-    $lettersCount = strlen($word);
+    $lettersCount = strlen($_SESSION['word']);
     $triedLetter = $_POST['triedLetter'];
     $replacementString = str_pad('', $lettersCount, REPLACEMENT_CHAR);
     // Setting new values
     $data = validated($triedLetter);
     if (!isset($data['error'])) {
-        $letters[$triedLetter] = false;
+        $_SESSION['letters'][$triedLetter] = false;
         // Checking if the letter is in the word
         $letterFound = false;
-        $triedLetters = array_filter($letters, fn($b) => !$b);
-        $trials = count(array_filter(array_keys($triedLetters), fn($l) => !str_contains($word, $l)
+        $triedLetters = array_filter($_SESSION['letters'], fn($b) => !$b);
+        $trials = count(array_filter(array_keys($triedLetters), fn($l) => !str_contains($_SESSION['word'], $l)
         ));
         $triedLettersStr = implode(',', array_keys($triedLetters));
         for ($i = 0; $i < $lettersCount; $i++) {
-            $replacementString[$i] = array_key_exists($word[$i], $triedLetters) ? $word[$i] : REPLACEMENT_CHAR;
-            if ($triedLetter === substr($word, $i, 1)) {
+            $replacementString[$i] = array_key_exists($_SESSION['word'][$i], $triedLetters) ? $_SESSION['word'][$i] : REPLACEMENT_CHAR;
+            if ($triedLetter === substr($_SESSION['word'], $i, 1)) {
                 $letterFound = true;
             }
         }
@@ -79,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 $gameState = 'lost';
             }
         } else {
-            if ($word === $replacementString) {
+            if ($_SESSION['word'] === $replacementString) {
                 $gameState = 'win';
             }
         }
@@ -90,10 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     exit('Vous n’avez pas le droit d’exécuter cette requête');
 }
 
-setcookie('letters', json_encode($letters));
-
-
-echo $word;
+echo $_SESSION['word'];
 
 include './views/start.php';
 

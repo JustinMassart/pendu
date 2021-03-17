@@ -7,7 +7,6 @@
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title><?= PAGE_TITLE ?></title>
-    <link rel="stylesheet" href="css/index.css">
 </head>
 <?php if ($gameState === 'start'): ?>
 <body>
@@ -38,7 +37,7 @@
             <label for="triedLetter">Choisis ta lettre</label>
             <select name="triedLetter"
                     id="triedLetter">
-                <?php foreach ($letters as $letter => $available): ?>
+                <?php foreach ($_SESSION['letters'] as $letter => $available): ?>
                     <?php if ($available): ?>
                         <option value="<?= $letter ?>"><?= $letter ?></option>
                     <?php endif; ?>

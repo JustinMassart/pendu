@@ -6,7 +6,7 @@
 </head>
 <body>
 <div>
-    <h1 class="h_lost">Tu n’as pas trouvé le mot "<i><?= $word ?></i>" en moins de <?= MAX_TRIALS ?> essais incorrects !
+    <h1 class="h_lost">Tu n’as pas trouvé le mot "<i><?= $_SESSION['word'] ?></i>" en moins de <?= MAX_TRIALS ?> essais incorrects !
     </h1>
 </div>
 <div class="image image_lost">
